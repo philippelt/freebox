@@ -1,0 +1,22 @@
+# This is an example of the result of nat_ports_to_yaml file
+22/tcp:
+  comment: SSH Access
+  enabled: true
+  hostname: myhost
+  ip_proto: tcp
+  lan_ip: 192.168.250.100
+  lan_port: 22
+  src_ip: 0.0.0.0
+  wan_port_end: 22
+  wan_port_start: 22
+21/ftp:
+  comment: FTP Service
+  enabled: true
+  hostname: myhost
+  ip_proto: tcp
+  lan_ip: 192.168.250.100
+  lan_port: 21
+  src_ip: 0.0.0.0
+  wan_port_end: 21
+  wan_port_start: 21
+

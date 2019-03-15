@@ -1,0 +1,7 @@
+# This is an example of the result of dhcp_to_yaml file
+Camera1:
+  ip: 192.168.250.80
+  mac: 08:AB:CE:12:D4:32
+Camera2:
+  ip: 192.168.250.81
+  mac: 08:AB:CE:29:B2:E3

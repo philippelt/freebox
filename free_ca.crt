@@ -1,0 +1,3 @@
+Place into this file the content of the two Free public keys available at https://dev.freebox.fr/sdk/os/
+Just concatenate the two blocks ---BEGIN CERTIFICATE--- xxxxxx ---END CERTIFICATE--- into this file
+For security reason, I can't include them in the repo to avoid any falsification attempts
