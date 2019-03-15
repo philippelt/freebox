@@ -133,7 +133,7 @@ class Freebox:
         return self._get_dhcp(static=False)
 
 
-    def yaml_to_dhcp(self, dhcpFile):
+    def yaml_to_static_dhcp(self, dhcpFile):
         """Load static dhcp lease from a yaml file and add the ones that are missing"""
 
         curDhcp = self.get_static_dhcp()
