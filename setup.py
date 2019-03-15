@@ -1,7 +1,11 @@
 # Parameters setup
 
 # Freebox access, to allow for https, use free defined fqdn
+# ** IMPORTANT **
 # Hardcode fqdn to local address to access from lan in /etc/hosts of the querying system
+# This will allow your API to access your box using regular 443 port even if remote access is not allowed
+# In /etc/hosts (with x.y being the local IP address of your box):
+# 192.168.x.y  <your generated name>.fbxos.fr
 FREEBOX = "<your generated name>.fbxos.fr"
 FREEBOX_URL = "https://%s" % FREEBOX
 

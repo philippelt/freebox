@@ -31,7 +31,7 @@ def main():
 
         dhcp = freebox.get_static_dhcp()
         if setup.TEST_DHCP not in dhcp:
-            if os.path.exists( setup.NAT_PORT_FILE ):
+            if os.path.exists( setup.DHCP_STATIC_FILE ):
                 freebox.yaml_to_static_dhcp( setup.DHCP_STATIC_FILE )
             else:
                 raise EndApp("No DHCP static lease file to reload")
