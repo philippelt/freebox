@@ -107,6 +107,19 @@ class Freebox:
             self.session_token = None
 
 
+    def _log_change( expected, found, title, logFile):
+        with open( logFile, "a") as f:
+            print("Title", file=f)
+            for k,v in expected.items():
+                if k not in found:
+                    print("\tCurrently missing key %s : %s" % (k,v), file=f)
+                elif v != found[k]:
+                    print("\tConfig for %s, expected : %s, found : %s" % (k, v, found[k]), file=f)
+            for k,v in found.items():
+                if k not in expected:
+                    print("\tExceeding key %s : %s" % (k,v), file=f)
+
+
     def _get_dhcp(self, static=True):
         """get dhcp lease, static or dynamic depending on static flag"""
 
@@ -133,18 +146,21 @@ class Freebox:
         return self._get_dhcp(static=False)
 
 
-    def yaml_to_static_dhcp(self, dhcpFile):
+    def yaml_to_static_dhcp(self, dhcpFile, logFile=None):
         """Load static dhcp lease from a yaml file and add the ones that are missing"""
 
         curDhcp = self.get_static_dhcp()
         with open(dhcpFile, "r" ) as f:
             dhcp = yaml.load(f.read())
+        if curDhcp != dhcp and logFile:
+            self._log_change( dhcp, curDhcp, "Static DHCP", logFile)
         for k,v in dhcp.items():
             if k not in curDhcp:
                 r = self._rest("v4/dhcp/static_lease", method="POST", parameters=v)
                 print("Defined static DHCP for %" % k)
             else:
                 print("Static DHCP for %s already existing")
+        return curDhcp != dhcp
 
 
     def get_nat_ports(self):
@@ -169,19 +185,22 @@ class Freebox:
             f.write(yaml.dump(ports, default_flow_style=False))
 
 
-    def yaml_to_nat_ports(self, portsFile):
+    def yaml_to_nat_ports(self, portsFile, logFile=None):
         """Load nat wan port redirection and add the ones that are missing
            Key is a concatenation of <wan port>/<proto> such as "22/tcp" for ssh for example"""
 
         curPorts = self.get_nat_ports()
         with open(portsFile, "r") as f:
             ports = yaml.load(f.read())
+        if curPorts != ports and logFile:
+            self._log_change( ports, curPorts, "NAT Ports forwarding", logFile)
         for k,v in ports.items():
             if k not in curPorts:
                 r = self._rest("v4/fw/redir/", method="POST", parameters=v)
                 print("Defined port redirection for %s" % comment)
             else:
                 print("Redirection for %s[%s] already existing" % (k, comment))
+        return curPorts != ports
 
 
     def get_network_nodes(self, guest=False):
@@ -201,3 +220,71 @@ class Freebox:
                 if last_ipv4 : dst["ip"] = last_ipv4
             hosts[h["primary_name"]] = dst.copy()
         return hosts
+
+
+    def get_connexion_info(self):
+        """Get some connexion information including external IP and state"""
+
+        return self._rest("v4/connection/")
+
+
+    def get_system_info(self):
+        """Get some general system information including uptime"""
+
+        return self._rest("v4/system/")
+
+
+    def reboot(self, wait=True):
+        """Reboot the freebox, return when the freebox is available or False if unavailable"""
+        self._rest("v4/system/reboot/")
+        if not wait: return True
+        maxDelay = 60
+        while maxDelay > 0:
+            time.sleep(5)
+            try:
+                self._rest("/api_version")
+                break
+            except:
+                maxDelay -= 5
+        else:
+            return False
+        return True
+
+
+    def get_incoming_ports(self):
+        """Get setting for freebox backed services"""
+
+        incomPorts = {}
+        r = self._rest("v4/fw/incoming/")
+        for p in r:
+            i = p["id"]
+            for k in ("id", "max_port", "min_port") : del p[k]
+            incomPorts[i] = p.copy()
+        return incomPorts
+
+
+    def incoming_ports_to_yaml(self, incomingFile):
+        """Dump incoming ports in a file that can be reloaded"""
+
+        ports = self.get_incoming_ports()
+        with open(incomingFile, "w") as f:
+            f.write(yaml.dump(ports, default_flow_style=False))
+
+
+    def yaml_to_incoming_ports(self, incomingFile, logFile=None):
+        """Load incoming ports setup from yaml file
+           Currently, only enabled, in_port and protocol fields are updated"""
+
+
+        with open(incomingFile, "r") as f:
+            ports = yaml.load(f.read())
+            curPorts = self.get_incoming_ports()
+            if curPorts != ports and logFile:
+                self._log_change( ports, curPorts, "Incoming ports setup", logFile)
+            for p,v in ports.items():
+                params = { "in_port": v["in_port"],
+                           "enabled": v["enabled"],
+                           "type": v["type"] }
+                if v["readonly"]: del params["in_port"]
+                self._rest("v4/fw/incoming/%s" % p, method="PUT", parameters=params)
+            return ports != curPorts
