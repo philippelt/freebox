@@ -20,6 +20,9 @@ def main():
     # Save nat port redirections
     freebox.nat_ports_to_yaml( setup.NAT_PORT_FILE )
 
+    # Save local services ports
+    freebox.incoming_ports_to_yaml( setup.INCOMING_PORT_FILE )
+
     freebox.disconnect()
 
     return 0

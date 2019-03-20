@@ -25,6 +25,7 @@ AUTH_FILE = "/path/to/cred/file"
 
 # Local files to save critical configuration elements
 NAT_PORT_FILE = "/path/to/ports/yaml"
+INCOMING_PORT_FILE = "/path/to/incoming/yaml"
 DHCP_STATIC_FILE = "/path/to/dhcp/yaml"
 
 # Port redirection to check to decide if reload is required (preserved or all losts)
@@ -32,3 +33,6 @@ TEST_SSH = "22/tcp" # Just an exemple, it is usually a bad idea to expose port 2
 
 # Static DHCP lease to check to decide if reload is required
 TEST_DHCP = "mynas"
+
+# Log file to keep track of changes identified during checkup
+LOG_TRACE = "/var/log/restore_freebox.log"
